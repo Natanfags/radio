@@ -12,12 +12,12 @@ export default {
         root,
         publicDirectory,
         audioDirectory,
-        songDirectory: join(audioDirectory, 'songs'),
+        songsDirectory: join(audioDirectory, 'songs'),
         fxDirectory: join(audioDirectory, 'fx')
     },
     pages: {
-        homeHTMl: 'home/index.html',
-        controllerHTMl: 'controller/index.html',
+        homeHTML: 'home/index.html',
+        controllerHTML: 'controller/index.html',
     },
     location: {
         home: '/home'

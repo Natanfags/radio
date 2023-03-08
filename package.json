@@ -7,13 +7,15 @@
   "scripts": {
     "start": "node server/index.js",
     "live-reload": "nodemon server/index.js",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": " cross-env LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache",
+    "test:watch": "cross-env LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --watchAll",
+    "test:coverage": "cross-env LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --coverage tests/unit"
   },
   "engines": {
     "node": "v18.14.2"
   },
   "keywords": [],
-  "author": "",
+  "author": "natan.fagundes",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.35.0",

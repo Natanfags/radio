@@ -15,8 +15,7 @@ export class Service {
     }
 
     async getFileInfo(file) {
-        // file = home / index.html
-        // console.log('XXX', fullFilePath);
+
         const fullFilePath = join(publicDirectory, file)
 
         await fsPromises.access(fullFilePath)
@@ -29,10 +28,7 @@ export class Service {
 
     async getFileStream(file) {
 
-        const {
-            name,
-            type
-        } = await this.getFileInfo(file)
+        const {name, type} = await this.getFileInfo(file)
         return {
             stream: this.createFileStream(name),
             type

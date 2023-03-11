@@ -30,7 +30,7 @@ describe('#Service - teste suite para o service', () => {
 
         const expectedResult = {
             type: '.mp3',
-            name: `${publicDirectory}\\${currentFile}`
+            name: `${publicDirectory}/${currentFile}`
         }
 
         expect(result).toStrictEqual(expectedResult)
@@ -41,7 +41,7 @@ describe('#Service - teste suite para o service', () => {
 
         const mockFileStream = TestUtil.generateReadableStream(['data'])
         const currentFile = 'mySong.mp3'
-        const fullPathFile = `${publicDirectory}\\${currentFile}`
+        const fullPathFile = `${publicDirectory}/${currentFile}`
 
         const fileInfo = {
             type: '.mp3',

@@ -17,6 +17,7 @@ const {
     constants: {
         fallBackBitRate,
         englishConversation,
+        boo,
         bitRateDivisor
     }
 } = config
@@ -25,7 +26,7 @@ export class Service {
 
     constructor() {
         this.clientStreams = new Map()
-        this.currentSong = englishConversation
+        this.currentSong = boo
         this.currentBitRate = 0
         this.throttleTransform = {}
         this.currentReadable = {}
@@ -108,11 +109,13 @@ export class Service {
         const throttleTransform = this.throttleTransform = new Throttle(bitRate)
         const songReadable = this.currentReadable = this.createFileStream(this.currentSong)
 
+        console.log('aqui')
+
         return streamsPromises.pipeline(
             songReadable,
             throttleTransform,
             this.broadcast()
-        );
+        )
     }
 
     stopStreaming() {

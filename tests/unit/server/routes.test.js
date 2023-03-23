@@ -1,6 +1,6 @@
-import {beforeEach, describe, jest, test, expect} from '@jest/globals'
-import {Controller} from '../../../server/controller.js'
-import {handler} from '../../../server/routes.js'
+import { beforeEach, describe, expect, jest, test } from '@jest/globals'
+import { Controller } from '../../../server/controller.js'
+import { handler } from '../../../server/routes.js'
 import config from '../../../server/config.js'
 import TestUtil from '../_util/testUtil.js'
 
@@ -127,6 +127,43 @@ describe('#Routes - test site para resposta da API', () => {
         expect(mockFileStream.pipe).toBeCalledWith(params.response)
         expect(params.response.writeHead).not.toHaveBeenCalled()
     })
+
+    test(`GET /stream?id=123 - deve chamar createClientStream`, async () => {
+        const params = TestUtil.defaultHandleParams()
+        params.request.method = 'GET'
+        params.request.url = '/stream'
+
+        const mockFileStream = TestUtil.generateReadableStream(['data'])
+
+        jest.spyOn(
+            mockFileStream,
+            "pipe"
+        ).mockReturnValue()
+
+        const onClose = jest.fn()
+
+        jest.spyOn(
+            Controller.prototype,
+            Controller.prototype.createClientStream.name,
+        ).mockReturnValue({
+            onClose,
+            mockFileStream
+        })
+
+        await handler(...params.values())
+        params.request.emit('close')
+
+        expect(params.response.writeHead).toHaveBeenCalledWith(
+            200, {
+                'Content-Type': 'audio/mpeg',
+                'Accept-Ranges': 'bytes'
+            }
+        )
+
+        expect(Controller.prototype.createClientStream).toHaveBeenCalled()
+        expect(onClose).toHaveBeenCalled()
+    })
+
     test(`POST /unknown - deve responder com o 404`, async () => {
         const params = TestUtil.defaultHandleParams()
         params.request.method = 'POST'
@@ -136,6 +173,33 @@ describe('#Routes - test site para resposta da API', () => {
 
         expect(params.response.writeHead).toHaveBeenCalledWith(404)
         expect(params.response.end).toHaveBeenCalled()
+    })
+
+    test(`POST /controller - deve chamar o handleCommand`, async () => {
+        const params = TestUtil.defaultHandleParams()
+
+        params.request.method = 'POST'
+        params.request.url = '/controller'
+
+        const body = {
+            command: 'start'
+        }
+
+        params.request.push(JSON.stringify(body))
+
+        const jsonResult = {
+            ok: '1'
+        }
+
+        jest.spyOn(
+            Controller.prototype,
+            Controller.prototype.handleCommand.name
+        ).mockResolvedValue(jsonResult)
+
+        await handler(...params.values())
+
+        expect(Controller.prototype.handleCommand).toHaveBeenCalledWith(body)
+        expect(params.response.end).toHaveBeenCalledWith(JSON.stringify(jsonResult))
     })
 
     describe('expections', () => {

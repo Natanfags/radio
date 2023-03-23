@@ -1,7 +1,5 @@
-/* istanbul ignore file */
-
-import {jest} from '@jest/globals'
-import {Readable, Writable} from 'stream'
+import { jest } from '@jest/globals'
+import { Readable, Writable } from 'stream'
 
 export default class TestUtil {
 
@@ -22,7 +20,7 @@ export default class TestUtil {
 
         return new Writable({
             write(chunk, enc, cb) {
-                onData(chunk)
+                onData?.(chunk)
                 cb(null, chunk)
             }
         })
@@ -31,8 +29,7 @@ export default class TestUtil {
     static defaultHandleParams() {
 
         const requestStream = TestUtil.generateReadableStream(['body'])
-        const response = TestUtil.generateWritableStream(() => {
-        })
+        const response = TestUtil.generateWritableStream()
         const data = {
             request: Object.assign(requestStream, {
                 headers: {},

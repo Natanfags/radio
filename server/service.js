@@ -2,13 +2,13 @@ import fs from 'fs'
 import config from "./config.js"
 import fsPromises from "fs/promises"
 import streamsPromises from 'stream/promises'
-import {extname, join} from 'path'
-import {randomUUID} from 'crypto'
-import {PassThrough, Writable} from 'stream'
+import { extname, join } from 'path'
+import { randomUUID } from 'crypto'
+import { PassThrough, Writable } from 'stream'
 import Throttle from "throttle"
 import childProcess from "child_process";
-import {logger} from "./util.js";
-import {once} from 'events'
+import { logger } from "./util.js";
+import { once } from 'events'
 
 const {
     dir: {
@@ -108,8 +108,6 @@ export class Service {
         const bitRate = this.currentBitRate = (await this.getBitRate(this.currentSong)) / bitRateDivisor
         const throttleTransform = this.throttleTransform = new Throttle(bitRate)
         const songReadable = this.currentReadable = this.createFileStream(this.currentSong)
-
-        console.log('aqui')
 
         return streamsPromises.pipeline(
             songReadable,

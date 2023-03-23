@@ -1,10 +1,21 @@
-import {describe, expect, jest, test} from '@jest/globals'
+import { describe, expect, jest, test } from '@jest/globals'
+import { setTimeout } from 'timers/promises'
+import { Transform } from 'stream'
 import Server from '../../../server/server.js'
 import superTest from 'supertest'
 import portfinder from 'portfinder'
-import {Transform} from 'stream'
-import {setTimeout} from 'timers/promises'
+import config from "../../../server/config.js";
+import fs from "fs";
 
+const {
+    dir: {
+        publicDirectory
+    },
+    pages: {
+        homeHTML,
+        controllerHTML
+    }
+} = config
 const getAvaliablePort = portfinder.getPortPromise
 const RETENTION_DATA_PERIOD = 200
 describe('API E2E suite test', () => {
@@ -17,6 +28,8 @@ describe('API E2E suite test', () => {
         stop: 'stop',
     }
 
+    let testServer = superTest(Server())
+
     function pipeAndReadStreamData(stream, onChunk) {
         const transform = new Transform({
             transform(chunk, enc, cb) {
@@ -27,13 +40,71 @@ describe('API E2E suite test', () => {
         return stream.pipe(transform)
     }
 
+    test('GET /unknown - given an unknown route it should respond with 404 status code', async () => {
+        const response = await testServer.get(`/unknown`)
+        expect(response.statusCode).toStrictEqual(404)
+    })
+
+    test('GET / - it should respond with the home location and 302 status code', async () => {
+        const response = await testServer.get('/')
+        expect(response.headers.location).toStrictEqual("/home");
+        expect(response.statusCode).toStrictEqual(302)
+    })
+
+    test('GET /home - it should respond with file stream', async () => {
+        const response = await testServer.get('/home')
+        const homePage = await fs.promises.readFile(`${publicDirectory}/${homeHTML}`)
+        expect(response.text).toStrictEqual(homePage.toString())
+    })
+
+    test('GET /controller - it should respond with file stream', async () => {
+        const response = await testServer.get('/controller')
+        const homePage = await fs.promises.readFile(`${publicDirectory}/${controllerHTML}`)
+        expect(response.text).toStrictEqual(homePage.toString())
+    })
+
+    describe('static files ', () => {
+        test('GET /file.js - it should respond with 404 if file doesnt exists', async () => {
+            const file = 'file.js'
+            const response = await testServer.get(`/${file}`)
+            expect(response.statusCode).toStrictEqual(404)
+        })
+
+        test('GET /controller/css/index.css - given a css file it should respond with content-type text/css ', async () => {
+            const file = 'controller/css/index.css'
+            const response = await testServer.get(`/${file}`)
+            const existingPage = await fs.promises.readFile(`${publicDirectory}/${file}`)
+            expect(response.text).toStrictEqual(existingPage.toString())
+            expect(response.statusCode).toStrictEqual(200)
+            expect(response.header['content-type']).toStrictEqual('text/css')
+        })
+
+        test('GET /home/js/animation.js - given a js file it should respond with content-type text/javascript ', async () => {
+            const file = 'home/js/animation.js'
+            const response = await testServer.get(`/${file}`)
+            const existingPage = await fs.promises.readFile(`${publicDirectory}/${file}`)
+            expect(response.text).toStrictEqual(existingPage.toString())
+            expect(response.statusCode).toStrictEqual(200)
+            expect(response.header['content-type']).toStrictEqual('text/javascript')
+        })
+
+        test('GET /controller/index.html - given a html file it should respond with content-type text/html ', async () => {
+            const file = controllerHTML
+            const response = await testServer.get(`/${file}`)
+            const existingPage = await fs.promises.readFile(`${publicDirectory}/${file}`)
+            expect(response.text).toStrictEqual(existingPage.toString())
+            expect(response.statusCode).toStrictEqual(200)
+            expect(response.header['content-type']).toStrictEqual('text/html')
+        })
+    })
+
     describe('client workflow', () => {
         async function getTestServer() {
             const getSuperTest = port => superTest(`http://localhost:${port}`)
             const port = await getAvaliablePort()
 
             return new Promise((resolve, reject) => {
-                const server = Server.listen(port)
+                const server = Server().listen(port)
                     .once('listening', () => {
                         const testServer = getSuperTest(port)
                         const response = {
